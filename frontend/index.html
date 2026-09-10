@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RAG Chatbot Demo</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-2: #f1f5f9;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --accent-strong: #1d4ed8;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #020617;
+        --surface: #0f172a;
+        --surface-2: #111827;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --border: #1e293b;
+        --accent: #60a5fa;
+        --accent-strong: #3b82f6;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .chat {
+      width: min(100%, 720px);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .messages {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem;
+      min-height: 320px;
+      max-height: 55vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .message {
+      padding: 0.7rem 0.9rem;
+      border-radius: 12px;
+      max-width: 85%;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+
+    .sources {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    form {
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.75rem 0.9rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    button {
+      padding: 0.75rem 1.1rem;
+      border-radius: 12px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--accent-strong);
+      border-color: var(--accent-strong);
+    }
+  </style>
+</head>
+<body>
+  <div class="chat">
+    <div>
+      <h1>RAG Chatbot Demo</h1>
+      <p class="subtitle">Runs entirely on local, open-source models via Ollama. Ask a question about the sample documents.</p>
+    </div>
+    <div class="messages" id="messages"></div>
+    <form id="chat-form">
+      <input type="text" id="question" placeholder="Ask a question about the ingested documents..." autocomplete="off" required>
+      <button type="submit" id="send-btn">Send</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('question');
+    const messages = document.getElementById('messages');
+    const sendBtn = document.getElementById('send-btn');
+
+    function addMessage(text, role) {
+      const el = document.createElement('div');
+      el.className = 'message ' + role;
+      el.textContent = text;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+      return el;
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const question = input.value.trim();
+      if (!question) return;
+
+      addMessage(question, 'user');
+      input.value = '';
+      sendBtn.disabled = true;
+
+      const thinking = addMessage('Thinking...', 'bot');
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          thinking.textContent = 'Error: ' + (error.detail || response.statusText);
+          return;
+        }
+
+        const data = await response.json();
+        thinking.textContent = data.answer;
+
+        if (data.sources && data.sources.length) {
+          const sourcesEl = document.createElement('div');
+          sourcesEl.className = 'sources';
+          sourcesEl.textContent = 'Sources: ' + data.sources.map(s => s.source.split('/').pop()).join(', ');
+          thinking.appendChild(sourcesEl);
+        }
+      } catch (err) {
+        thinking.textContent = 'Request failed: ' + err.message;
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
