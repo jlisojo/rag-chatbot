@@ -1,3 +1,13 @@
+---
+title: Rag Chatbot
+emoji: 🐠
+colorFrom: blue
+colorTo: gray
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # RAG Chatbot (Local, Open-Source LLMs)
 
 A retrieval-augmented generation (RAG) chatbot that answers questions about a
