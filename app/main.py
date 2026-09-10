@@ -63,4 +63,4 @@ def chat(request: ChatRequest):
         raise HTTPException(status_code=503, detail=f"RAG chain unavailable: {exc}") from exc
 
 
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+app.mount("/", StaticFiles(directory=str(config.BASE_DIR / "frontend"), html=True), name="frontend")

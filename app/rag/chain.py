@@ -1,5 +1,6 @@
 """Build the retrieval-augmented generation chain: retriever + local LLM."""
 
+import re
 from functools import lru_cache
 
 from langchain_core.output_parsers import StrOutputParser
@@ -30,6 +31,11 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 
+def clean_answer(answer):
+    """Hide model reasoning blocks from the user-facing response."""
+    return re.sub(r"<think>.*?</think>", "", answer, flags=re.DOTALL).strip()
+
+
 @lru_cache(maxsize=1)
 def build_rag_chain():
     """Assemble a retriever -> prompt -> local LLM -> string output chain, cached for reuse."""
@@ -51,7 +57,7 @@ def answer_question(question: str):
     """Run a single question through the RAG chain and return the answer with sources."""
     chain, retriever = build_rag_chain()
     sources = retriever.invoke(question)
-    answer = chain.invoke(question)
+    answer = clean_answer(chain.invoke(question))
     return {
         "answer": answer,
         "sources": [

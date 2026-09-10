@@ -5,13 +5,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 # Chroma's anonymized telemetry has a known compatibility issue with recent
 # posthog versions that spams stderr; disable it since it's not needed here.
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
-
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Provider switches: "ollama" (default, fully local) or a hosted alternative
 # used for the public web demo where Ollama isn't available.
@@ -26,7 +25,7 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 # Groq-hosted open-source model, used when LLM_PROVIDER=groq (e.g. the public
 # demo deployment, where a local Ollama instance isn't available).
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "qwen/qwen3.6-27b")
 
 # CPU-friendly local embedding model, used when EMBEDDING_PROVIDER=huggingface.
 # No API key required; runs anywhere via sentence-transformers.
