@@ -13,7 +13,7 @@ from app.rag.providers import get_llm
 
 SYSTEM_PROMPT = """You are a helpful assistant answering questions using only the provided context.
 If the answer isn't in the context, say you don't know instead of guessing.
-Keep answers concise and cite which part of the context you used when relevant.
+Answer in 2-4 concise sentences. Do not include hidden reasoning or a step-by-step analysis.
 
 Context:
 {context}
@@ -33,7 +33,10 @@ def format_docs(docs):
 
 def clean_answer(answer):
     """Hide model reasoning blocks from the user-facing response."""
-    return re.sub(r"<think>.*?</think>", "", answer, flags=re.DOTALL).strip()
+    cleaned = re.sub(r"<think>.*?</think>", "", answer, flags=re.DOTALL)
+    if "<think>" in cleaned:
+        cleaned = cleaned.split("<think>", 1)[0]
+    return cleaned.strip()
 
 
 @lru_cache(maxsize=1)

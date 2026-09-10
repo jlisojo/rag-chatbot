@@ -38,4 +38,4 @@ CHROMA_DIR = Path(os.getenv("CHROMA_DIR", BASE_DIR / "data" / "chroma_db"))
 # Chunking and retrieval tuning.
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "800"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "120"))
-RETRIEVAL_K = int(os.getenv("RETRIEVAL_K", "4"))
+RETRIEVAL_K = int(os.getenv("RETRIEVAL_K", "2"))

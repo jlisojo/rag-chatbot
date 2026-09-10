@@ -22,7 +22,13 @@ def get_llm():
 
         if not config.GROQ_API_KEY:
             raise RuntimeError("LLM_PROVIDER=groq requires GROQ_API_KEY to be set")
-        return ChatGroq(model=config.GROQ_MODEL, api_key=config.GROQ_API_KEY, temperature=0.2)
+        return ChatGroq(
+            model=config.GROQ_MODEL,
+            api_key=config.GROQ_API_KEY,
+            temperature=0.2,
+            max_tokens=950,
+            model_kwargs={"reasoning_format": "hidden", "reasoning_effort": "none"},
+        )
 
     from langchain_ollama import ChatOllama
 
