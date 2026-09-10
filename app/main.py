@@ -60,7 +60,10 @@ def chat(request: ChatRequest):
     try:
         return answer_question(request.question)
     except Exception as exc:  # noqa: BLE001 - surface ingestion/connection issues to the caller
-        raise HTTPException(status_code=503, detail=f"RAG chain unavailable: {exc}") from exc
+        detail = str(exc)
+        if "Request too large" in detail or "tokens per minute" in detail:
+            detail = "The model's response limit was reached. Please ask a shorter question."
+        raise HTTPException(status_code=503, detail=f"RAG chain unavailable: {detail}") from exc
 
 
 app.mount("/", StaticFiles(directory=str(config.BASE_DIR / "frontend"), html=True), name="frontend")
