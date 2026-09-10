@@ -61,6 +61,41 @@ documents.
 | `/api/ingest` | POST | Rebuilds the vector index from `data/sample_docs/` |
 | `/api/chat` | POST | `{ "question": "..." }` → `{ "answer": "...", "sources": [...] }` |
 
+## Providers
+
+By default everything runs locally through Ollama. Two environment variables
+switch to hosted/CPU-only alternatives, used for the public demo deployment
+where Ollama isn't available:
+
+| Variable | `ollama` (default) | Alternative |
+|---|---|---|
+| `LLM_PROVIDER` | `ChatOllama` (`llama3.2:3b`) | `groq` → `ChatGroq`, a free hosted API serving open-weight models (requires `GROQ_API_KEY`) |
+| `EMBEDDING_PROVIDER` | `OllamaEmbeddings` (`nomic-embed-text`) | `huggingface` → `HuggingFaceEmbeddings` (`all-MiniLM-L6-v2`), runs on CPU, no API key |
+
+See `.env.example` for the full list of provider-related variables.
+
+## Deploying a public demo (Hugging Face Spaces)
+
+Ollama can't run in a visitor's browser, so the public demo instead runs the
+same codebase in a small Docker container with Groq (LLM) and a local
+CPU embedding model, both free.
+
+1. Create a free account at [huggingface.co](https://huggingface.co) and a
+   new **Space** → SDK: **Docker** → visibility: **Public**.
+2. In the Space's **Settings → Repository secrets**, add `GROQ_API_KEY` with
+   your key from [console.groq.com](https://console.groq.com). Never commit
+   this key to git.
+3. Add the Space as a second git remote and push this repo to it:
+   ```bash
+   git remote add space https://huggingface.co/spaces/<your-username>/rag-chatbot
+   git push space main
+   ```
+4. The included `Dockerfile` installs dependencies, builds the vector index
+   at build time using CPU embeddings, and serves the FastAPI app (chat UI
+   included) on port `7860`, which is what Spaces expects.
+5. Once built, the Space URL is a real public chat demo that can be linked or
+   embedded via iframe.
+
 ## Project layout
 
 ```
@@ -86,6 +121,9 @@ tests/
   reloading the vector store on every request.
 - **Explicit "I don't know" instruction in the system prompt**: reduces
   hallucination when the retrieved context doesn't contain the answer.
+- **Provider factory (`app/rag/providers.py`)**: isolates the Ollama vs.
+  Groq/HuggingFace choice behind two functions, so the ingestion and chain
+  code never need to know which provider is active.
 
 ## License
 

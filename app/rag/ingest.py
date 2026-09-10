@@ -9,10 +9,10 @@ os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app import config
+from app.rag.providers import get_embeddings
 
 LOADERS_BY_EXTENSION = {
     ".pdf": PyPDFLoader,
@@ -46,7 +46,7 @@ def build_vector_store(docs_dir: Path = config.DOCS_DIR, persist_dir: Path = con
     )
     chunks = splitter.split_documents(documents)
 
-    embeddings = OllamaEmbeddings(model=config.EMBEDDING_MODEL, base_url=config.OLLAMA_BASE_URL)
+    embeddings = get_embeddings()
 
     persist_dir.mkdir(parents=True, exist_ok=True)
     store = Chroma.from_documents(
@@ -59,7 +59,7 @@ def build_vector_store(docs_dir: Path = config.DOCS_DIR, persist_dir: Path = con
 
 def load_vector_store(persist_dir: Path = config.CHROMA_DIR):
     """Load an already-built Chroma vector store without re-ingesting documents."""
-    embeddings = OllamaEmbeddings(model=config.EMBEDDING_MODEL, base_url=config.OLLAMA_BASE_URL)
+    embeddings = get_embeddings()
     return Chroma(persist_directory=str(persist_dir), embedding_function=embeddings)
 
 

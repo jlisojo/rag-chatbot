@@ -5,10 +5,10 @@ from functools import lru_cache
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
-from langchain_ollama import ChatOllama
 
 from app import config
 from app.rag.ingest import load_vector_store
+from app.rag.providers import get_llm
 
 SYSTEM_PROMPT = """You are a helpful assistant answering questions using only the provided context.
 If the answer isn't in the context, say you don't know instead of guessing.
@@ -36,7 +36,7 @@ def build_rag_chain():
     store = load_vector_store()
     retriever = store.as_retriever(search_kwargs={"k": config.RETRIEVAL_K})
 
-    llm = ChatOllama(model=config.CHAT_MODEL, base_url=config.OLLAMA_BASE_URL, temperature=0.2)
+    llm = get_llm()
 
     chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}

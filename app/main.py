@@ -30,7 +30,13 @@ class IngestResponse(BaseModel):
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "chat_model": config.CHAT_MODEL, "embedding_model": config.EMBEDDING_MODEL}
+    return {
+        "status": "ok",
+        "llm_provider": config.LLM_PROVIDER,
+        "embedding_provider": config.EMBEDDING_PROVIDER,
+        "chat_model": config.GROQ_MODEL if config.LLM_PROVIDER == "groq" else config.CHAT_MODEL,
+        "embedding_model": config.HF_EMBEDDING_MODEL if config.EMBEDDING_PROVIDER == "huggingface" else config.EMBEDDING_MODEL,
+    }
 
 
 @app.post("/api/ingest", response_model=IngestResponse)
