@@ -1,5 +1,7 @@
 """FastAPI app exposing the RAG chatbot as a small HTTP API."""
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -9,7 +11,18 @@ from app import config
 from app.rag.chain import answer_question, build_rag_chain
 from app.rag.ingest import build_vector_store
 
-app = FastAPI(title="RAG Chatbot", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Pre-warm the RAG chain and embeddings on startup so first query is instant
+    try:
+        build_rag_chain()
+    except Exception as exc:
+        print(f"Warning: RAG chain pre-warming failed: {exc}")
+    yield
+
+
+app = FastAPI(title="RAG Chatbot", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

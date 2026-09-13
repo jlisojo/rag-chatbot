@@ -5,10 +5,15 @@ from app import config
 
 def get_embeddings():
     """Return an embeddings client based on EMBEDDING_PROVIDER."""
-    if config.EMBEDDING_PROVIDER == "huggingface":
-        from langchain_huggingface import HuggingFaceEmbeddings
+    if config.EMBEDDING_PROVIDER in ("huggingface", "fastembed"):
+        try:
+            from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 
-        return HuggingFaceEmbeddings(model_name=config.HF_EMBEDDING_MODEL)
+            return FastEmbedEmbeddings(model_name=config.HF_EMBEDDING_MODEL)
+        except Exception:
+            from langchain_huggingface import HuggingFaceEmbeddings
+
+            return HuggingFaceEmbeddings(model_name=config.HF_EMBEDDING_MODEL)
 
     from langchain_ollama import OllamaEmbeddings
 
