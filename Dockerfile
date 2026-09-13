@@ -20,6 +20,6 @@ ENV EMBEDDING_PROVIDER=huggingface
 ENV LLM_PROVIDER=groq
 RUN python3 -m app.rag.ingest
 
-# Hugging Face Spaces expects the app to listen on port 7860.
+# Hugging Face Spaces expects 7860; Render/Railway pass $PORT dynamically.
 EXPOSE 7860
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-7860}"]
