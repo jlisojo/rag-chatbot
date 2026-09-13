@@ -1,10 +1,10 @@
-# Lightweight container for deploying the RAG chatbot to Hugging Face Spaces.
-FROM python:3.11-slim
+# Lightweight container for deploying the RAG chatbot to Hugging Face Spaces / Render.
+FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
-# System deps for sentence-transformers / pypdf
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# System deps and security updates
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
